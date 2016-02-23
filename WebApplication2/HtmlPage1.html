@@ -1,0 +1,207 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <script src="scripts/jquery-2.2.0.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="scripts/jquery.blockUI.js"></script>
+    <script src="scripts/angular.js"></script>
+    <script src="scripts/angular-sanitize.js"></script>
+    <script>
+        var app = angular.module('myApp', ['ngSanitize']);
+
+        app.controller('MyCtrl', function ($scope, $http) {
+            $scope.isValid = 0;
+            $scope.totalIssue = 0;
+
+            $scope.url = '';
+
+            $scope.issueCntFor24HrsList = [];
+            $scope.issueCnt24HrsTo7DaysList = [];
+            $scope.issueCntMoreThan7DaysList = [];
+
+            $scope.getDetails = function () {
+
+                $.blockUI({
+                    message: '<h1>Fetching reposotiry data.</h1>',
+                    css: {
+                        border: 'none',
+                        padding: '15px',
+                        backgroundColor: '#000',
+                        '-webkit-border-radius': '10px',
+                        '-moz-border-radius': '10px',
+                        opacity: .5,
+                        color: '#fff'
+                    }
+                });
+
+                $http.get("/api/Shippable/GetDetails?url=" + $scope.url)
+                    .then(function (response) {
+                        $scope.isValid = 1;
+                        $scope.totalIssue = 0;
+                        var data = response.data;
+                        for (var i = 0; i < data.length; i++) {
+                            $scope.totalIssue += data[i].length;
+                        }
+
+                        $scope.issueCntFor24HrsList = data[0];
+                        $scope.issueCnt24HrsTo7DaysList = data[1];
+                        $scope.issueCntMoreThan7DaysList = data[2];
+                        console.log($scope.issueCntFor24HrsList);
+                        console.log($scope.issueCnt24HrsTo7DaysList);
+                        console.log($scope.issueCntMoreThan7DaysList);
+                        $.unblockUI();
+                    }, function error(response) {
+                        $scope.isValid = 0;
+                        $scope.issueCntFor24HrsList = [];
+                        $scope.issueCnt24HrsTo7DaysList = [];
+                        $scope.issueCntMoreThan7DaysList = [];
+                        $.blockUI({
+                            message: '<h3 class="list-group-item list-group-item-danger">Invalid URL</h3>',
+                            css: { backgroundColor: none },
+                            overlayCSS: { backgroundColor: none }
+                        });
+                        setTimeout($.unblockUI, 2000);
+                        //$.unblockUI();
+                    });
+            }
+
+        });
+
+    </script>
+
+</head>
+<body ng-app="myApp" ng-controller="MyCtrl">
+    <div id="blockUi" hidden="hidden">
+
+    </div>
+    <div id="alert" class="alert alert-danger" role="alert" hidden="hidden">
+        <a href="#" class="alert-link">Invalid URL</a>
+    </div>
+    <h1>Shippable Assignment</h1>
+    <div class="container">
+        <div class="col-md-12 col-offset-2">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Enter GitHub Repository Link..." ng-model="url">
+                        <span class="input-group-btn">
+                            <button ng-click="getDetails()" class="btn btn-default" type="button">Get Details</button>
+                        </span>
+                    </div><!-- /input-group -->
+                </div><!-- /.col-lg-6 -->
+            </div>
+            <div class="row" ng-if="isValid">
+                <div class="row">
+                    <h3>Total Open Issues : <span>{{totalIssue}}</span></h3>
+                </div>
+                <div class="row">
+                    <div class="panel-group" id="accordion">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse1">
+                                        Number of open issues that were opened in the last 24 hours
+                                        <span class="badge" style="float:right;">{{issueCntFor24HrsList.length}}</span>
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="collapse1" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div ng-if="issueCntFor24HrsList.length == 0">
+                                        <h3>No Issues To Display.</h3>
+                                    </div>
+                                    <table ng-if="issueCntFor24HrsList.length != 0" class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Sr.No</th>
+                                                <th>Issue Name</th>
+                                                <th>Issue Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="x in issueCntFor24HrsList">
+                                                <td>1</td>
+                                                <td><div ng-bind-html="x.IssueName"></div></td>
+                                                <td>{{ x.IssueDate }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse2">
+                                        Number of open issues that were opened more than 24 hours ago but less than 7 days ago
+                                        <span class="badge" style="float:right;">{{issueCnt24HrsTo7DaysList.length}}</span>
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="collapse2" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div ng-if="issueCnt24HrsTo7Days == 0">
+                                        <h3>No Issues To Display.</h3>
+                                    </div>
+                                    <table ng-if="issueCnt24HrsTo7Days != 0" class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Sr.No</th>
+                                                <th>Issue Name</th>
+                                                <th>Issue Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="x in issueCnt24HrsTo7DaysList">
+                                                <td>1</td>
+                                                <td><div ng-bind-html="x.IssueName"></div></td>
+                                                <td>{{x.IssueDate}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse3">
+                                        Number of open issues that were opened more than 7 days ago
+                                        <span class="badge" style="float:right;">{{issueCntMoreThan7DaysList.length}}</span>
+                                    </a>
+                                </h4>
+                            </div>
+                            <div id="collapse3" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    <div ng-if="issueCntMoreThan7DaysList.length == 0">
+                                        <h3>No Issues To Display.</h3>
+                                    </div>
+                                    <table ng-if="issueCntMoreThan7DaysList.length != 0" class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Sr.No</th>
+                                                <th>Issue Name</th>
+                                                <th>Issue Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr ng-repeat="x in issueCntMoreThan7DaysList">
+                                                <td>1</td>
+                                                <td><div ng-bind-html="x.IssueName"></div></td>
+                                                <td>{{ x.IssueDate }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

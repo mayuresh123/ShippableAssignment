@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+	<meta charset="utf-8" />
+    <script src="scripts/jquery-2.2.0.js"></script>
+    <script>
+        $(document).ready(function () {
+            var issueLength = 0;
+            var issueOpen24Hrs = 0;
+            var issueOpenBetween24Hrsto7days = 0;
+            var issueOpenMoreThan7Days = 0;
+            $("#search").click(function () {
+                var text = $("#url").val();
+                var url = 'api/Shippable?url='+text;
+                
+                $.ajax({
+                    type: 'get',
+                    url: url,
+                    success: function (response) {
+                        //Total number of open issues.
+                        for (var i = 0; i < response.length; i++) {
+                            issueLength += response[i].length;   
+                        }
+                        issueOpen24Hrs = response[0].length;
+                        issueOpenBetween24Hrsto7days = response[1].length;
+                        issueOpenMoreThan7Days = response[2].length;
+
+                        console.log("Total open issues:" + issueLength);
+                        console.log("Number of open issues that were opened in the last 24 hours:" + issueOpen24Hrs);
+                        console.log("Number of open issues that were opened more than 24 hours ago but less than 7 days ago:" + issueOpenBetween24Hrsto7days);
+                        console.log("Number of open issues that were opened more than 7 days ago :" + issueOpenMoreThan7Days);
+                        console.log(response);
+                    },
+                    error: function (response) {
+                        console.log(response);
+                    }
+                });
+
+            });
+        });
+    </script>
+</head>
+<body>
+    <input type="text" id="url" />
+    <button id="search">Search</button><br />
+
+</body>
+</html>

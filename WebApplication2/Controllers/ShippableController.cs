@@ -5,17 +5,25 @@ using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Web.Http;
-using WebApplication2.Models;
+using ShippableAssignment.Models;
 
-namespace WebApplication2.Controllers
+namespace ShippableAssignment.Controllers
 {
+    /// <summary>
+    /// ShippableController
+    /// </summary>
     public class ShippableController : ApiController
     {
+        /// <summary>
+        /// Get github repository details.
+        /// </summary>
+        /// <param name="url">Github repository url</param>
+        /// <returns>Returns list of githubinfo</returns>
         [HttpGet]
         public IEnumerable<IEnumerable<GitHubInfo>> GetDetails(string url)
         {
-            WebClient wc = new WebClient();
-            string html = wc.DownloadString(url);
+            WebClient webClient = new WebClient();
+            string html = webClient.DownloadString(url);
             html = Regex.Unescape(html);
 
             string pattern = "<div[^<>]*class=\"table-list-cell issue-title\"[^<>]*>(?<content>.*?)</div>";

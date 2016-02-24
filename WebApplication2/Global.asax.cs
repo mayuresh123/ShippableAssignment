@@ -5,7 +5,7 @@ using System.Web;
 using System.Web.Http;
 using System.Web.Routing;
 
-namespace WebApplication2
+namespace ShippableAssignment
 {
     public class WebApiApplication : System.Web.HttpApplication
     {
